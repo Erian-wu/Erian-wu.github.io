@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷氣費與公共電費計算</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input::placeholder {
+            color: #bbb;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .result p {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>冷氣費與公共電費計算</h1>
+
+    <label for="total_kwh">總用電度數：</label>
+    <input type="number" id="total_kwh" placeholder="輸入總用電度數" required>
+
+    <label for="total_bill">總電費金額（元）：</label>
+    <input type="number" id="total_bill" placeholder="輸入總電費金額" required>
+
+    <label for="ac_kwh_a">A房冷氣度數：</label>
+    <input type="number" id="ac_kwh_a" placeholder="輸入A房冷氣度數" required>
+
+    <label for="ac_kwh_b">B房冷氣度數：</label>
+    <input type="number" id="ac_kwh_b" placeholder="輸入B房冷氣度數" required>
+
+    <label for="ac_kwh_c">C房冷氣度數：</label>
+    <input type="number" id="ac_kwh_c" placeholder="輸入C房冷氣度數" required>
+
+    <h3>費率設定：</h3>
+
+    <label for="rate1">0~120度費率（每度）：</label>
+    <input type="number" id="rate1" placeholder="輸入費率（例如：1.63）" required>
+
+    <label for="rate2">121~330度費率（每度）：</label>
+    <input type="number" id="rate2" placeholder="輸入費率（例如：2.10）" required>
+
+    <label for="rate3">331~500度費率（每度）：</label>
+    <input type="number" id="rate3" placeholder="輸入費率（例如：2.89）" required>
+
+    <label for="rate4">501度以上費率（每度）：</label>
+    <input type="number" id="rate4" placeholder="輸入費率（例如：3.94）" required>
+
+    <button onclick="calculate()">計算分攤結果</button>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    function calculate() {
+        const totalKwh = parseFloat(document.getElementById("total_kwh").value);
+        const totalBill = parseFloat(document.getElementById("total_bill").value);
+        const acKwhA = parseFloat(document.getElementById("ac_kwh_a").value);
+        const acKwhB = parseFloat(document.getElementById("ac_kwh_b").value);
+        const acKwhC = parseFloat(document.getElementById("ac_kwh_c").value);
+
+        const rate1 = parseFloat(document.getElementById("rate1").value);
+        const rate2 = parseFloat(document.getElementById("rate2").value);
+        const rate3 = parseFloat(document.getElementById("rate3").value);
+        const rate4 = parseFloat(document.getElementById("rate4").value);
+
+        const totalAcKwh = acKwhA + acKwhB + acKwhC;
+
+        // 計算冷氣總費用（累進費率）
+        let totalAcCost = 0;
+        let remainingKwh = totalAcKwh;
+
+        if (remainingKwh > 0) {
+            let tier1 = Math.min(120, remainingKwh);
+            totalAcCost += tier1 * rate1;
+            remainingKwh -= tier1;
+        }
+
+        if (remainingKwh > 0) {
+            let tier2 = Math.min(210, remainingKwh);
+            totalAcCost += tier2 * rate2;
+            remainingKwh -= tier2;
+        }
+
+        if (remainingKwh > 0) {
+            let tier3 = Math.min(170, remainingKwh);
+            totalAcCost += tier3 * rate3;
+            remainingKwh -= tier3;
+        }
+
+        if (remainingKwh > 0) {
+            totalAcCost += remainingKwh * rate4;
+        }
+
+        // 計算每房冷氣費
+        const acCostA = (acKwhA / totalAcKwh) * totalAcCost;
+        const acCostB = (acKwhB / totalAcKwh) * totalAcCost;
+        const acCostC = (acKwhC / totalAcKwh) * totalAcCost;
+
+        // 計算公共區電費
+        const commonCost = (totalBill - totalAcCost) / 3;
+
+        // 計算總金額
+        const totalA = acCostA + commonCost;
+        const totalB = acCostB + commonCost;
+        const totalC = acCostC + commonCost;
+
+        // 顯示結果
+        document.getElementById("result").innerHTML = `
+            <p>A房冷氣費：${acCostA.toFixed(2)} 元<br>
+            B房冷氣費：${acCostB.toFixed(2)} 元<br>
+            C房冷氣費：${acCostC.toFixed(2)} 元</p>
+            <p>公共電費（每人）：${commonCost.toFixed(2)} 元</p>
+            <p>A房總金額：${totalA.toFixed(2)} 元<br>
+            B房總金額：${totalB.toFixed(2)} 元<br>
+            C房總金額：${totalC.toFixed(2)} 元</p>
+        `;
+    }
+</script>
+
+</body>
+</html>
