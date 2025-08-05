@@ -1,161 +1,280 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>房客電費小幫手</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: #f7f7f7;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    .mode-buttons {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .mode-buttons button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      background-color: #4caf50;
-      color: white;
-      cursor: pointer;
-    }
-    .mode-buttons button:hover {
-      background-color: #45a049;
-    }
-    .calculator {
-      max-width: 500px;
-      margin: auto;
-      padding: 20px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-      color: #2c3e50;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電費計算小幫手</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #4e4e4e;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            box-shadow: inset 0 0px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            border-color: #7768c0;
+            box-shadow: 0 0 8px rgba(150, 150, 233, 0.5);
+            outline: none;
+        }
+        input::placeholder {
+            color: #c7c7c7;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 100px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 30px;
+            text-align: center;
+            line-height: 1.8;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px dashed #ddd;
+        }
+        .result p {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-  <h1>房客電費小幫手</h1>
-  <div class="mode-buttons">
-    <button onclick="switchMode('tiered')">依台電費率計算</button>
-    <button onclick="switchMode('flat')">平均單價計算</button>
-  </div>
 
-  <div class="calculator" id="tiered">
-    <h2>台電費率計算模式</h2>
-    <input type="number" id="ac1" placeholder="冷氣電表 - 房客1 (kWh)" />
-    <input type="number" id="ac2" placeholder="冷氣電表 - 房客2 (kWh)" />
-    <input type="number" id="ac3" placeholder="冷氣電表 - 房客3 (kWh)" />
-    <input type="number" id="common" placeholder="公共用電度數 (客廳、廚房等)" />
-    <button onclick="calculateTiered()">計算</button>
-    <div id="result-tiered"></div>
-  </div>
+<div class="container">
+    <h1>電費計算小幫手</h1>
 
-  <div class="calculator" id="flat" style="display: none;">
-    <h2>平均單價計算模式</h2>
-    <input type="number" id="totalCost" placeholder="總電費金額（元）" />
-    <input type="number" id="ac1f" placeholder="冷氣電表 - 房客1 (kWh)" />
-    <input type="number" id="ac2f" placeholder="冷氣電表 - 房客2 (kWh)" />
-    <input type="number" id="ac3f" placeholder="冷氣電表 - 房客3 (kWh)" />
-    <input type="number" id="commonf" placeholder="公共用電度數 (kWh)" />
-    <button onclick="calculateFlat()">計算</button>
-    <div id="result-flat"></div>
-  </div>
+    <div class="input-group">
+        <label for="total_kwh">總用電度數（兩個月）：</label>
+        <input type="number" id="total_kwh" placeholder="例如：740" required>
+    </div>
+    
+    <div class="input-group">
+        <label for="ac_kwh_a">A房冷氣度數：</label>
+        <input type="number" id="ac_kwh_a" placeholder="例如：400" required>
+    </div>
 
-  <script>
-    function switchMode(mode) {
-      document.getElementById("tiered").style.display = mode === "tiered" ? "block" : "none";
-      document.getElementById("flat").style.display = mode === "flat" ? "block" : "none";
+    <div class="input-group">
+        <label for="ac_kwh_b">B房冷氣度數：</label>
+        <input type="number" id="ac_kwh_b" placeholder="例如：150" required>
+    </div>
+
+    <div class="input-group">
+        <label for="ac_kwh_c">C房冷氣度數：</label>
+        <input type="number" id="ac_kwh_c" placeholder="例如：0" required>
+    </div>
+
+    <div class="input-group">
+        <label for="season_select">選擇季節：</label>
+        <select id="season_select" onchange="updateRates()">
+            <option value="summer">夏季電價 (6/1-9/30)</option>
+            <option value="non_summer">非夏季電價 (其他月份)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>電費費率設定（每度）：</label>
+    </div>
+
+    <div class="input-group">
+        <label for="rate1">0-120度費率：</label>
+        <input type="number" id="rate1" data-tier="1" placeholder="請輸入費率" required>
+    </div>
+
+    <div class="input-group">
+        <label for="rate2">121-330度費率：</label>
+        <input type="number" id="rate2" data-tier="2" placeholder="請輸入費率" required>
+    </div>
+
+    <div class="input-group">
+        <label for="rate3">331-500度費率：</label>
+        <input type="number" id="rate3" data-tier="3" placeholder="請輸入費率" required>
+    </div>
+
+    <div class="input-group">
+        <label for="rate4">501-700度費率：</label>
+        <input type="number" id="rate4" data-tier="4" placeholder="請輸入費率" required>
+    </div>
+
+    <div class="input-group">
+        <label for="rate5">701-1000度費率：</label>
+        <input type="number" id="rate5" data-tier="5" placeholder="請輸入費率" required>
+    </div>
+
+    <div class="input-group">
+        <label for="rate6">1001度以上費率：</label>
+        <input type="number" id="rate6" data-tier="6" placeholder="請輸入費率" required>
+    </div>
+
+    <button onclick="calculate()">計算分攤結果</button>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    // 台電費率陣列
+    const summerRates = [1.68, 2.45, 3.70, 5.04, 6.24, 8.46];
+    const nonSummerRates = [1.68, 2.16, 3.03, 4.14, 5.07, 6.63];
+    const tierLimits = [120, 330, 500, 700, 1000, Infinity];
+
+    // 更新費率輸入框
+    function updateRates() {
+        const season = document.getElementById('season_select').value;
+        const rates = season === 'summer' ? summerRates : nonSummerRates;
+
+        document.getElementById('rate1').value = rates[0];
+        document.getElementById('rate2').value = rates[1];
+        document.getElementById('rate3').value = rates[2];
+        document.getElementById('rate4').value = rates[3];
+        document.getElementById('rate5').value = rates[4];
+        document.getElementById('rate6').value = rates[5];
     }
+    
+    window.onload = updateRates;
 
-    function calculateTiered() {
-      const ac1 = parseFloat(document.getElementById("ac1").value) || 0;
-      const ac2 = parseFloat(document.getElementById("ac2").value) || 0;
-      const ac3 = parseFloat(document.getElementById("ac3").value) || 0;
-      const common = parseFloat(document.getElementById("common").value) || 0;
-      const total = ac1 + ac2 + ac3 + common;
-      let cost = 0;
-      let remaining = total;
-
-      if (remaining > 1000) {
-        cost += (remaining - 1000) * 6.41;
-        remaining = 1000;
-      }
-      if (remaining > 700) {
-        cost += (remaining - 700) * 5.66;
-        remaining = 700;
-      }
-      if (remaining > 500) {
-        cost += (remaining - 500) * 4.8;
-        remaining = 500;
-      }
-      if (remaining > 330) {
-        cost += (remaining - 330) * 3.61;
-        remaining = 330;
-      }
-      if (remaining > 120) {
-        cost += (remaining - 120) * 2.68;
-        remaining = 120;
-      }
-      cost += remaining * 1.63;
-
-      const perKWh = cost / total;
-      const sharedCommon = common / 3;
-
-      const r1 = (ac1 + sharedCommon) * perKWh;
-      const r2 = (ac2 + sharedCommon) * perKWh;
-      const r3 = (ac3 + sharedCommon) * perKWh;
-
-      document.getElementById("result-tiered").innerHTML = `
-        <p>房客1 應付：${r1.toFixed(2)} 元</p>
-        <p>房客2 應付：${r2.toFixed(2)} 元</p>
-        <p>房客3 應付：${r3.toFixed(2)} 元</p>
-        <p>總金額：約 ${cost.toFixed(2)} 元</p>
-      `;
+    // 通用的階梯費用計算函數
+    function calculateTieredCost(kwhToCalculate, rates) {
+        let totalCost = 0;
+        let remainingKwh = kwhToCalculate;
+        
+        for (let i = 0; i < rates.length && remainingKwh > 0; i++) {
+            const tierCapacity = tierLimits[i] - (i > 0 ? tierLimits[i-1] : 0);
+            const kwhInThisTier = Math.min(remainingKwh, tierCapacity);
+            
+            if (kwhInThisTier > 0) {
+                 totalCost += kwhInThisTier * rates[i];
+                 remainingKwh -= kwhInThisTier;
+            }
+        }
+        
+        return totalCost;
     }
+    
+    function calculate() {
+        const totalKwh = parseFloat(document.getElementById("total_kwh").value);
+        const acKwhA = parseFloat(document.getElementById("ac_kwh_a").value) || 0;
+        const acKwhB = parseFloat(document.getElementById("ac_kwh_b").value) || 0;
+        const acKwhC = parseFloat(document.getElementById("ac_kwh_c").value) || 0;
+        
+        if (isNaN(totalKwh) || totalKwh <= 0) {
+            document.getElementById("result").innerHTML = `<p class="error-message">請輸入有效的總用電度數。</p>`;
+            return;
+        }
 
-    function calculateFlat() {
-      const totalCost = parseFloat(document.getElementById("totalCost").value) || 0;
-      const ac1 = parseFloat(document.getElementById("ac1f").value) || 0;
-      const ac2 = parseFloat(document.getElementById("ac2f").value) || 0;
-      const ac3 = parseFloat(document.getElementById("ac3f").value) || 0;
-      const common = parseFloat(document.getElementById("commonf").value) || 0;
-      const total = ac1 + ac2 + ac3 + common;
-      const perKWh = totalCost / total;
-      const sharedCommon = common / 3;
+        const rates = [
+            parseFloat(document.getElementById("rate1").value),
+            parseFloat(document.getElementById("rate2").value),
+            parseFloat(document.getElementById("rate3").value),
+            parseFloat(document.getElementById("rate4").value),
+            parseFloat(document.getElementById("rate5").value),
+            parseFloat(document.getElementById("rate6").value)
+        ];
 
-      const r1 = (ac1 + sharedCommon) * perKWh;
-      const r2 = (ac2 + sharedCommon) * perKWh;
-      const r3 = (ac3 + sharedCommon) * perKWh;
+        if (rates.some(isNaN)) {
+             document.getElementById("result").innerHTML = `<p class="error-message">請輸入所有有效的費率。</p>`;
+            return;
+        }
+        
+        const totalAcKwh = acKwhA + acKwhB + acKwhC;
+        const nonAcKwh = totalKwh - totalAcKwh;
 
-      document.getElementById("result-flat").innerHTML = `
-        <p>房客1 應付：${r1.toFixed(2)} 元</p>
-        <p>房客2 應付：${r2.toFixed(2)} 元</p>
-        <p>房客3 應付：${r3.toFixed(2)} 元</p>
-      `;
+        if (nonAcKwh < 0) {
+            document.getElementById("result").innerHTML = `<p class="error-message">錯誤：總冷氣度數不能超過總用電度數。</p>`;
+            return;
+        }
+
+        // 月平均度數
+        const monthlyTotalKwh = totalKwh / 2;
+        const monthlyNonAcKwh = nonAcKwh / 2;
+        
+        // 1. 計算本期總電費 (用於確保分攤總額與總電費一致)
+        const totalBill = calculateTieredCost(monthlyTotalKwh, rates) * 2;
+        
+        // 2. 計算非冷氣費用 (視為基礎用電，佔用最便宜的級距)
+        const totalNonAcCost = calculateTieredCost(monthlyNonAcKwh, rates) * 2;
+        const nonAcCostPerPerson = totalNonAcCost / 3;
+
+        // 3. 計算總冷氣費用 (總電費 - 總非冷氣費用)
+        const totalAcCost = totalBill - totalNonAcCost;
+
+        // 4. 公平分攤各房冷氣費用 (按度數比例分攤)
+        const acCosts = { A: 0, B: 0, C: 0 };
+        if (totalAcKwh > 0) {
+            acCosts.A = (acKwhA / totalAcKwh) * totalAcCost;
+            acCosts.B = (acKwhB / totalAcKwh) * totalAcCost;
+            acCosts.C = (acKwhC / totalAcKwh) * totalAcCost;
+        }
+        
+        // 5. 計算各房總金額
+        const totalA = acCosts.A + nonAcCostPerPerson;
+        const totalB = acCosts.B + nonAcCostPerPerson;
+        const totalC = acCosts.C + nonAcCostPerPerson;
+
+        // 6. 顯示結果
+        document.getElementById("result").innerHTML = `
+            <p>本期總電費：${totalBill.toFixed(2)} 元</p>
+            <hr>
+            <p>總公共電費：${totalNonAcCost.toFixed(2)} 元</p>
+            <p>公共電費/人：${nonAcCostPerPerson.toFixed(2)} 元</p>
+            <hr>
+            <p>A房總金額 (冷氣費 + 公共電費)：${acCosts.A.toFixed(2)} + ${nonAcCostPerPerson.toFixed(2)} = ${totalA.toFixed(2)} 元</p>
+            <p>B房總金額 (冷氣費 + 公共電費)：${acCosts.B.toFixed(2)} + ${nonAcCostPerPerson.toFixed(2)} = ${totalB.toFixed(2)} 元</p>
+            <p>C房總金額 (冷氣費 + 公共電費)：${acCosts.C.toFixed(2)} + ${nonAcCostPerPerson.toFixed(2)} = ${totalC.toFixed(2)} 元</p>
+        `;
     }
-  </script>
+</script>
 </body>
 </html>
