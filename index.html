@@ -263,16 +263,16 @@
         const totalB = acCosts.B + nonAcCostPerPerson;
         const totalC = acCosts.C + nonAcCostPerPerson;
 
-        // 6. 顯示結果
+        // 6. 顯示結果並四捨五入到整數
         document.getElementById("result").innerHTML = `
-            <p>本期總電費：${totalBill.toFixed(2)} 元</p>
+            <p>本期總電費：${totalBill.toFixed(0)} 元</p>
             <hr>
-            <p>總公共電費：${totalNonAcCost.toFixed(2)} 元</p>
-            <p>公共電費/人：${nonAcCostPerPerson.toFixed(2)} 元</p>
+            <p>總公共電費：${totalNonAcCost.toFixed(0)} 元</p>
+            <p>公共電費/人：${nonAcCostPerPerson.toFixed(0)} 元</p>
             <hr>
-            <p>A房總金額 (冷氣費 + 公共電費)：${acCosts.A.toFixed(2)} + ${nonAcCostPerPerson.toFixed(2)} = ${totalA.toFixed(2)} 元</p>
-            <p>B房總金額 (冷氣費 + 公共電費)：${acCosts.B.toFixed(2)} + ${nonAcCostPerPerson.toFixed(2)} = ${totalB.toFixed(2)} 元</p>
-            <p>C房總金額 (冷氣費 + 公共電費)：${acCosts.C.toFixed(2)} + ${nonAcCostPerPerson.toFixed(2)} = ${totalC.toFixed(2)} 元</p>
+            <p>A房總金額 (冷氣費 + 公共電費)：${acCosts.A.toFixed(0)} + ${nonAcCostPerPerson.toFixed(0)} = ${totalA.toFixed(0)} 元</p>
+            <p>B房總金額 (冷氣費 + 公共電費)：${acCosts.B.toFixed(0)} + ${nonAcCostPerPerson.toFixed(0)} = ${totalB.toFixed(0)} 元</p>
+            <p>C房總金額 (冷氣費 + 公共電費)：${acCosts.C.toFixed(0)} + ${nonAcCostPerPerson.toFixed(0)} = ${totalC.toFixed(0)} 元</p>
         `;
     }
 </script>
