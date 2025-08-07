@@ -98,10 +98,20 @@
     <h1>電費計算小幫手</h1>
 
     <div class="input-group">
-        <label for="total_kwh">總用電度數（兩個月）：</label>
+        <label for="total_kwh">經常度數：</label>
         <input type="number" id="total_kwh" placeholder="例如：740" required>
     </div>
     
+    <div class="input-group">
+        <label for="total_bill">流動電費（元）：</label>
+        <input type="number" id="total_bill" placeholder="填入完整數字(含小數點後)" required>
+    </div>
+
+    <div class="input-group">
+        <label for="public_bill">公設電費（元）：</label>
+        <input type="number" id="public_bill" placeholder="填入完整數字(含小數點後)" required>
+    </div>
+
     <div class="input-group">
         <label for="ac_kwh_a">A房冷氣度數：</label>
         <input type="number" id="ac_kwh_a" placeholder="例如：400" required>
@@ -117,114 +127,45 @@
         <input type="number" id="ac_kwh_c" placeholder="例如：0" required>
     </div>
 
-    <div class="input-group">
-        <label for="season_select">選擇季節：</label>
-        <select id="season_select" onchange="updateRates()">
-            <option value="summer">夏季電價 (6/1-9/30)</option>
-            <option value="non_summer">非夏季電價 (其他月份)</option>
-        </select>
-    </div>
-
-    <div class="input-group">
-        <label>電費費率設定（每度）：</label>
-    </div>
-
-    <div class="input-group">
-        <label for="rate1">0-120度費率：</label>
-        <input type="number" id="rate1" data-tier="1" placeholder="請輸入費率" required>
-    </div>
-
-    <div class="input-group">
-        <label for="rate2">121-330度費率：</label>
-        <input type="number" id="rate2" data-tier="2" placeholder="請輸入費率" required>
-    </div>
-
-    <div class="input-group">
-        <label for="rate3">331-500度費率：</label>
-        <input type="number" id="rate3" data-tier="3" placeholder="請輸入費率" required>
-    </div>
-
-    <div class="input-group">
-        <label for="rate4">501-700度費率：</label>
-        <input type="number" id="rate4" data-tier="4" placeholder="請輸入費率" required>
-    </div>
-
-    <div class="input-group">
-        <label for="rate5">701-1000度費率：</label>
-        <input type="number" id="rate5" data-tier="5" placeholder="請輸入費率" required>
-    </div>
-
-    <div class="input-group">
-        <label for="rate6">1001度以上費率：</label>
-        <input type="number" id="rate6" data-tier="6" placeholder="請輸入費率" required>
-    </div>
-
     <button onclick="calculate()">計算分攤結果</button>
 
     <div class="result" id="result"></div>
 </div>
 
 <script>
-    // 台電費率陣列
+    // 固定的夏季和非夏季費率 (這些費率將不再直接用於計算，但保留以供參考)
     const summerRates = [1.68, 2.45, 3.70, 5.04, 6.24, 8.46];
     const nonSummerRates = [1.68, 2.16, 3.03, 4.14, 5.07, 6.63];
     const tierLimits = [120, 330, 500, 700, 1000, Infinity];
 
-    // 更新費率輸入框
-    function updateRates() {
-        const season = document.getElementById('season_select').value;
-        const rates = season === 'summer' ? summerRates : nonSummerRates;
-
-        document.getElementById('rate1').value = rates[0];
-        document.getElementById('rate2').value = rates[1];
-        document.getElementById('rate3').value = rates[2];
-        document.getElementById('rate4').value = rates[3];
-        document.getElementById('rate5').value = rates[4];
-        document.getElementById('rate6').value = rates[5];
-    }
-    
-    window.onload = updateRates;
-
-    // 通用的階梯費用計算函數
+    // 這個函數在這個版本中將不再被直接使用於計算，因為我們直接使用總電費金額
+    // 但為了保持程式碼結構，可以保留或移除，這裡選擇保留
     function calculateTieredCost(kwhToCalculate, rates) {
         let totalCost = 0;
         let remainingKwh = kwhToCalculate;
         
         for (let i = 0; i < rates.length && remainingKwh > 0; i++) {
             const tierCapacity = tierLimits[i] - (i > 0 ? tierLimits[i-1] : 0);
-            const kwhInThisTier = Math.min(remainingKwh, tierCapacity);
+            const kwhInThisTier = Math.min(remainingKwh, tierCapacity * 2); // 兩個月的級距
             
             if (kwhInThisTier > 0) {
                  totalCost += kwhInThisTier * rates[i];
                  remainingKwh -= kwhInThisTier;
             }
         }
-        
         return totalCost;
     }
-    
+
     function calculate() {
         const totalKwh = parseFloat(document.getElementById("total_kwh").value);
+        const totalBill = parseFloat(document.getElementById("total_bill").value); // 流動電費
+        const publicBill = parseFloat(document.getElementById("public_bill").value) || 0; // 公設電費
         const acKwhA = parseFloat(document.getElementById("ac_kwh_a").value) || 0;
         const acKwhB = parseFloat(document.getElementById("ac_kwh_b").value) || 0;
         const acKwhC = parseFloat(document.getElementById("ac_kwh_c").value) || 0;
         
-        if (isNaN(totalKwh) || totalKwh <= 0) {
-            document.getElementById("result").innerHTML = `<p class="error-message">請輸入有效的總用電度數。</p>`;
-            return;
-        }
-
-        const rates = [
-            parseFloat(document.getElementById("rate1").value),
-            parseFloat(document.getElementById("rate2").value),
-            parseFloat(document.getElementById("rate3").value),
-            parseFloat(document.getElementById("rate4").value),
-            parseFloat(document.getElementById("rate5").value),
-            parseFloat(document.getElementById("rate6").value)
-        ];
-
-        if (rates.some(isNaN)) {
-             document.getElementById("result").innerHTML = `<p class="error-message">請輸入所有有效的費率。</p>`;
+        if (isNaN(totalKwh) || totalKwh <= 0 || isNaN(totalBill) || totalBill < 0) { // totalBill可以為0
+            document.getElementById("result").innerHTML = `<p class="error-message">請輸入有效的總用電度數和流動電費。</p>`;
             return;
         }
         
@@ -236,21 +177,24 @@
             return;
         }
 
-        // 月平均度數
-        const monthlyTotalKwh = totalKwh / 2;
-        const monthlyNonAcKwh = nonAcKwh / 2;
-        
-        // 1. 計算本期總電費 (用於確保分攤總額與總電費一致)
-        const totalBill = calculateTieredCost(monthlyTotalKwh, rates) * 2;
-        
-        // 2. 計算非冷氣費用 (視為基礎用電，佔用最便宜的級距)
-        const totalNonAcCost = calculateTieredCost(monthlyNonAcKwh, rates) * 2;
+        // 計算每度電的平均單價 (基於流動電費和總用電度數)
+        let averageUnitPrice = 0;
+        if (totalKwh > 0) {
+            averageUnitPrice = totalBill / totalKwh;
+        }
+
+        // 1. 計算非冷氣費用 (直接用平均單價計算)
+        const totalNonAcCost = nonAcKwh * averageUnitPrice;
         const nonAcCostPerPerson = totalNonAcCost / 3;
 
-        // 3. 計算總冷氣費用 (總電費 - 總非冷氣費用)
-        const totalAcCost = totalBill - totalNonAcCost;
+        // 2. 計算總冷氣費用 (流動電費 - 非冷氣費用)
+        // 這裡確保總冷氣費用不會是負數
+        let totalAcCost = totalBill - totalNonAcCost;
+        if (totalAcCost < 0) { // 如果計算出來的冷氣費用是負數，表示非冷氣費用過高，將冷氣費用設為0
+            totalAcCost = 0;
+        }
 
-        // 4. 公平分攤各房冷氣費用 (按度數比例分攤)
+        // 3. 公平分攤各房冷氣費用 (按度數比例分攤)
         const acCosts = { A: 0, B: 0, C: 0 };
         if (totalAcKwh > 0) {
             acCosts.A = (acKwhA / totalAcKwh) * totalAcCost;
@@ -258,21 +202,29 @@
             acCosts.C = (acKwhC / totalAcKwh) * totalAcCost;
         }
         
-        // 5. 計算各房總金額
-        const totalA = acCosts.A + nonAcCostPerPerson;
-        const totalB = acCosts.B + nonAcCostPerPerson;
-        const totalC = acCosts.C + nonAcCostPerPerson;
+        // 4. 計算公設電費分攤
+        const publicCostPerPerson = publicBill / 3;
 
-        // 6. 顯示結果並四捨五入到整數
+        // 5. 計算各房總金額
+        const totalA = acCosts.A + nonAcCostPerPerson + publicCostPerPerson;
+        const totalB = acCosts.B + nonAcCostPerPerson + publicCostPerPerson;
+        const totalC = acCosts.C + nonAcCostPerPerson + publicCostPerPerson;
+
+        // 6. 計算本期總金額 (流動電費 + 公設費)
+        const totalAmount = totalBill + publicBill;
+
+        // 7. 顯示結果並四捨五入到整數
         document.getElementById("result").innerHTML = `
-            <p>本期總電費：${totalBill.toFixed(0)} 元</p>
+            <p>本期總金額（流動電費+公設費）：${totalBill.toFixed(0)} + ${publicBill.toFixed(0)} = ${totalAmount.toFixed(0)} 元</p>
             <hr>
-            <p>總公共電費：${totalNonAcCost.toFixed(0)} 元</p>
-            <p>公共電費/人：${nonAcCostPerPerson.toFixed(0)} 元</p>
+            <p>非冷氣費：${totalNonAcCost.toFixed(0)} 元</p>
+            <p>非冷氣費/人：${nonAcCostPerPerson.toFixed(0)} 元</p>
             <hr>
-            <p>A房總金額 (冷氣費 + 公共電費)：${acCosts.A.toFixed(0)} + ${nonAcCostPerPerson.toFixed(0)} = ${totalA.toFixed(0)} 元</p>
-            <p>B房總金額 (冷氣費 + 公共電費)：${acCosts.B.toFixed(0)} + ${nonAcCostPerPerson.toFixed(0)} = ${totalB.toFixed(0)} 元</p>
-            <p>C房總金額 (冷氣費 + 公共電費)：${acCosts.C.toFixed(0)} + ${nonAcCostPerPerson.toFixed(0)} = ${totalC.toFixed(0)} 元</p>
+            <p>公設費/人：${publicCostPerPerson.toFixed(0)} 元</p>
+            <hr>
+            <p>室友1號總金額：冷氣費${acCosts.A.toFixed(0)} + 非冷氣費${nonAcCostPerPerson.toFixed(0)} + 公設費${publicCostPerPerson.toFixed(0)} = ${totalA.toFixed(0)} 元</p>
+            <p>室友2號總金額：冷氣費${acCosts.B.toFixed(0)} + 非冷氣費${nonAcCostPerPerson.toFixed(0)} + 公設費${publicCostPerPerson.toFixed(0)} = ${totalB.toFixed(0)} 元</p>
+            <p>室友3號總金額：冷氣費${acCosts.C.toFixed(0)} + 非冷氣費${nonAcCostPerPerson.toFixed(0)} + 公設費${publicCostPerPerson.toFixed(0)} = ${totalC.toFixed(0)} 元</p>
         `;
     }
 </script>
